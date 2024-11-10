@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>KOREAN WAVE</title>
+    <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    <link rel="stylesheet" href="/css/custom.css">
+    
+    
+</head>
+
+<body>
+    <!-- Start Main Top -->
+    <div class="main-top">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <div class="custom-select-box">
+                        <select id="currency" class="selectpicker show-tick form-control" data-placeholder="$ USD">
+                            <option>₩ KRW</option>
+                            <option>$ USD</option>
+                            <option>$ COP</option>
+                        </select>
+                    </div>
+                    <div class="right-phone-box">
+                        <p>Llámanos: <a href="#">601 855 617</a></p>
+                    </div>
+                    <div class="our-link">
+                        <ul>
+                            <li><a href="#"><i class="fa fa-user s_color"></i> Mi cuenta</a></li>
+                            <li><a href="#"><i class="fas fa-location-arrow"></i> Nuestra Ubicación</a></li>
+                            <li><a href="#"><i class="fas fa-headset"></i> Contáctanos</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">
+                    <div class="login-box">
+                        <% if (user) { %>
+                            <!-- Si el usuario está autenticado, muestra el nombre y el botón de cerrar sesión -->
+                            <span>Bienvenido, <%= user.nombre %>!</span>
+                            <a href="/logout" class="btn btn-primary">Cerrar Sesión</a>
+                        <% } else { %>
+                            <!-- Si el usuario no está autenticado, muestra las opciones de inicio de sesión y registro -->
+                            <select id="user-options" class="selectpicker show-tick form-control" data-placeholder="Sign In" onchange="handleUserOption(this)">
+                                <option value="">Selecciona una opción</option>
+                                <option value="register">Registrarse</option>
+                                <option value="login">Iniciar Sesión</option>
+                            </select>
+                            
+                        <% } %>
+                    </div>
+                    <div class="text-slid-box">
+                        <div id="offer-box" class="carouselTicker">
+                            <ul class="offer-box">
+                                <li><i class="fab fa-opencart"></i> 20% off Entire Purchase Promo code: offT80</li>
+                                <li><i class="fab fa-opencart"></i> 50% - 80% off on Vegetables</li>
+                                <li><i class="fab fa-opencart"></i> Off 10%! Shop Vegetables</li>
+                                <li><i class="fab fa-opencart"></i> Off 50%! Shop Now</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Main Top -->
+
+    <!-- Start Main Header -->
+    <header class="main-header">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light navbar-default bootsnav">
+            <div class="container">
+                <div class="navbar-header">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-menu" aria-controls="navbar-menu" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="fa fa-bars"></i>
+                    </button>
+                    <a class="navbar-brand" href="/"><img src="/images/logo.png" class="logo" alt="Logo Korean Wave"></a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-menu">
+                    <ul class="nav navbar-nav ml-auto" data-in="fadeInDown" data-out="fadeOutUp">
+                        <li class="nav-item active"><a class="nav-link" href="/">Inicio</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/about">Sobre Nosotros</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="nav-link dropdown-toggle arrow" data-toggle="dropdown">Tienda</a>
+                            <ul class="dropdown-menu">
+                                <li><a href="/shop">Productos</a></li>
+                                <li><a href="/cart">Carrito</a></li>
+                                <li><a href="/checkout">Finalizar Compra</a></li>
+                                <li><a href="/my-account">Mi Cuenta</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item"><a class="nav-link" href="/gallery">Galería</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/contact-us">Contacto</a></li>
+                    </ul>
+                </div>
+                <div class="attr-nav">
+                    <ul>
+                        <li class="search"><a href="#"><i class="fa fa-search"></i></a></li>
+                        <li class="side-menu">
+                            <a href="#">
+                                <i class="fa fa-shopping-bag"></i>
+                                <span class="badge">3</span>
+                                <p>Mi Carrito</p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <!-- End Main Header -->
+
+    <!-- Start Top Search -->
+    <div class="top-search">
+        <div class="container">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                <input type="text" class="form-control" placeholder="Buscar">
+                <span class="input-group-addon close-search"><i class="fa fa-times"></i></span>
+            </div>
+        </div>
+    </div>
+    <!-- End Top Search -->
+
+    <!-- Start Slider -->
+    <div id="slides-shop" class="cover-slides">
+        <ul class="slides-container">
+            <li class="text-center">
+                <img src="images/banner-01.jpg" alt="Banner">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h1 class="m-b-20"><strong>Bienvenidos a<br> Korean Wave</strong></h1>
+                            <p class="m-b-40">Realza tu belleza, revela tu esencia<br> Últimas tendencias en el maquillaje Coreano.</p>
+                            <p><a class="btn hvr-hover" href="#">Ver Novedades</a></p>
+                        </div>
+                    </div>
+                </div>
+            </li>
+            <!-- Repetir estructura de banner si es necesario -->
+        </ul>
+        <div class="slides-navigation">
+            <a href="#" class="next"><i class="fa fa-angle-right"></i></a>
+            <a href="#" class="prev"><i class="fa fa-angle-left"></i></a>
+        </div>
+    </div>
+    <!-- End Slider -->
+
+    <!-- Start Categories -->
+    <div class="categories-shop">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
+                    <div class="shop-cat-box">
+                        <img class="img-fluid" src="images/categories_img_01.jpg" alt="Rutina Facial">
+                        <a class="btn hvr-hover" href="#">Rutina Facial</a>
+                    </div>
+                </div>
+                <!-- Agregar más categorías si es necesario -->
+            </div>
+        </div>
+    </div>
+    <!-- End Categories -->
+
+    <!-- Start Footer -->
+    <footer>
+        <div class="footer-main">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-4 col-md-12 col-sm-12">
+                        <div class="footer-top-box">
+                            <h3>Horario de Atención</h3>
+                            <ul class="list-time">
+                                <li>Lunes a Viernes: 08:00am a 05:00pm</li>
+                                <li>Sábados: 10:00am a 08:00pm</li>
+                                <li>Domingos: <span>Cerrado</span></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12 col-sm-12">
+                        <div class="footer-top-box">
+                            <h3>Información</h3>
+                            <form class="newsletter-box">
+                                <div class="form-group">
+                                    <input class="" type="email" name="Email" placeholder="Correo Electrónico*" />
+                                    <i class="fa fa-envelope"></i>
+                                </div>
+                                <button class="btn hvr-hover" type="submit">Enviar</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-12 col-sm-12">
+                        <div class="footer-top-box">
+                            <h3>Redes Sociales</h3>
+                            <p>Encuéntranos en las siguientes redes sociales.</p>
+                            <ul>
+                                <li><a href="#"><i class="fab fa-facebook"></i></a></li>
+                                <li><a href="#"><i class="fab fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fab fa-pinterest-p"></i></a></li>
+                                <li><a href="#"><i class="fab fa-whatsapp"></i></a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- End Footer -->
+
+    <div class="footer-copyright">
+        <p class="footer-company">Todos los derechos reservados. &copy; 2023 <a href="#">Korean Wave</a></p>
+    </div>
+
+    <a href="#" id="back-to-top" title="Back to top" style="display: none;">&uarr;</a>
+
+    <!-- ALL JS FILES -->
+    <script src="js/jquery-3.2.1.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- ALL PLUGINS -->
+    <script src="js/jquery.superslides.min.js"></script>
+    <script src="js/bootstrap-select.js"></script>
+    <script src="js/inewsticker.js"></script>
+    <script src="js/bootsnav.js"></script>
+    <script src="js/images-loded.min.js"></script>
+    <script src="js/isotope.min.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/baguetteBox.min.js"></script>
+    <script src="js/form-validator.min.js"></script>
+    <script src="js/contact-form-script.js"></script>
+    <script src="js/custom.js"></script>
+    <script>
+        function handleUserOption(select) {
+            if (select.value === "register") {
+                window.location.href = "/register";
+            } else if (select.value === "login") {
+                window.location.href = "/login";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <title>Iniciar Sesión</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            max-width: 900px;
+            width: 100%;
+            margin: 20px;
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .form-container {
+            padding: 2rem;
+            width: 60%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: #4A4A4A;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            color: #fff;
+            transition: 0.3s;
+        }
+
+        .icon.google { background-color: #db4437; }
+        .icon.facebook { background-color: #3b5998; }
+        .icon.github { background-color: #333; }
+        .icon.linkedin { background-color: #0077b5; }
+
+        .icon:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        span {
+            display: block;
+            margin: 1rem 0;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            border-color: #8EC5FC;
+            box-shadow: 0 0 8px rgba(142, 197, 252, 0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #E0C3FC, #8EC5FC);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-container {
+            width: 40%;
+            background: linear-gradient(135deg, #8EC5FC, #E0C3FC);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 2rem;
+            color: #fff;
+        }
+
+        .toggle-panel h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .toggle-panel p {
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .login-btn, .hidden {
+            padding: 0.8rem 2rem;
+            background-color: #fff;
+            color: #4A4A4A;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .login-btn:hover, .hidden:hover {
+            background-color: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container Iniciar-Sesion">
+            <form action="/login" method="POST">
+                <h1>Inicia sesión</h1>
+                
+<!-- Muestra el mensaje de error aquí si existe -->
+                <% if (errorMessage) { %>
+                     <p style="color: red;"><%= errorMessage %></p>
+                <% } %>
+
+
+                <div class="social-icons">
+                    <a href="#" class="icon google"><i class="fa-brands fa-google"></i></a>
+                    <a href="#" class="icon facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href="#" class="icon github"><i class="fa-brands fa-github"></i></a>
+                    <a href="#" class="icon linkedin"><i class="fa-brands fa-linkedin-in"></i></a>
+                </div>
+                <span>Ingresa con tu número de cuenta o email</span>
+                <input type="email" name="email" placeholder="Email o Número de Cuenta" required>
+                <input type="password" name="password" placeholder="Contraseña" required>
+                <a href="#">¿Olvidaste tu contraseña?</a>
+                <button type="submit">Iniciar Sesión</button>
+            </form>
+        </div>
+        <div class="toggle-container">
+            <div class="toggle-panel">
+                <h1>¿Nuevo aquí?</h1>
+                <p>Regístrate para acceder a nuestras funciones</p>
+                <a href="/register"><button class="hidden">Registrarse</button></a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
