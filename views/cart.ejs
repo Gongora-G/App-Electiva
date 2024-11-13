@@ -37,13 +37,13 @@
                             <th>Eliminar</th>
                         </tr>
                     </thead>
-                    <tbody id="cartItems">
+                    <tbody>
                         <% if (cart && cart.length > 0) { %>
                             <% cart.forEach(product => { %>
                                 <tr>
                                     <td><%= product.name %></td>
                                     <td>$<%= product.price %></td>
-                                    <td>1</td>
+                                    <td>1</td> <!-- Ajusta la cantidad según sea necesario -->
                                     <td>$<%= product.price %></td>
                                     <td>
                                         <form action="/remove-from-cart" method="POST">
@@ -55,10 +55,11 @@
                             <% }) %>
                         <% } else { %>
                             <tr>
-                                <td colspan="5" class="empty-cart">Tu carrito está vacío.</td>
+                                <td colspan="5">Tu carrito está vacío.</td>
                             </tr>
                         <% } %>
                     </tbody>
+                    
                 </table>
             </div>
 
@@ -109,6 +110,27 @@
             })
             .catch(error => console.error('Error:', error));
         }
+
+        function addToCart(productId, productName, productPrice) {
+  fetch('/add-to-cart', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: productId,
+      name: productName,
+      price: productPrice
+    })
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      window.location.href = '/cart'; // Redirigir al carrito después de agregar el producto
+    }
+  })
+  .catch(error => console.error('Error:', error));
+}
     </script>
 </body>
 </html>

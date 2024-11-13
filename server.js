@@ -80,22 +80,26 @@ app.use((req, res, next) => {
 
   // Ruta para añadir al carrito
 // Ruta para añadir al carrito
+// Ruta para añadir al carrito
 app.post('/add-to-cart', (req, res) => {
     const { id, name, price } = req.body;
-  
+
     // Crear el objeto del producto
     const product = {
-      id,
-      name,
-      price
+        id,
+        name,
+        price
     };
-  
+
     // Añadir el producto al carrito en la sesión
-    req.session.cart = req.session.cart || [];
+    if (!req.session.cart) {
+        req.session.cart = [];
+    }
     req.session.cart.push(product);
-  
-    res.json({ success: true });
+
+    res.redirect('/cart');  // Redirige al carrito después de agregar el producto
 });
+
 
   // Ruta para mostrar el carrito
 app.get('/my-cart', (req, res) => {
