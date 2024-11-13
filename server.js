@@ -1,6 +1,8 @@
+require('dotenv').config(); // Cargar las variables de entorno desde el archivo .env
+
 const express = require('express');
 const bodyParser = require('body-parser');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
@@ -26,19 +28,8 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-// Conexión a la base de datos MySQL
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'korean_wave'
-});
-// Middleware para definir `user` en todas las vistas
-app.use((req, res, next) => {
-    res.locals.user = req.session.user || null;
-    next();
-});
-
+// Conexión a la base de datos MySQL usando la URL de conexión de Railway
+const db = mysql.createConnection(process.env.DATABASE_URL);
 
 db.connect((err) => {
     if (err) {
@@ -46,6 +37,12 @@ db.connect((err) => {
         return;
     }
     console.log('Conexión a la base de datos exitosa.');
+});
+
+// Middleware para definir `user` en todas las vistas
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;
+    next();
 });
 
 // Ruta para la página principal
@@ -57,7 +54,6 @@ app.get('/', (req, res) => {
 app.get('/contact-us', (req, res) => {
     res.render('contact-us', { user: req.session.user || null });
 });
-
 
 // Ruta para manejar el formulario de contacto
 app.post('/contact', (req, res) => {
@@ -84,6 +80,11 @@ app.post('/register', async (req, res) => {
 
     // Verifica si el correo ya existe
     db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+        if (err) {
+            console.error('Error en la consulta:', err);
+            return res.render('register', { errorMessage: 'Hubo un error al verificar el correo electrónico.' });
+        }
+
         if (results.length > 0) {
             res.render('register', { errorMessage: 'El correo electrónico ya está registrado.' });
         } else {
@@ -101,6 +102,7 @@ app.post('/register', async (req, res) => {
         }
     });
 });
+
 
 // Ruta para mostrar el formulario de inicio de sesión
 app.get('/login', (req, res) => {
@@ -131,7 +133,6 @@ app.post('/login', (req, res) => {
     });
 });
 
-
 // Ruta para cerrar sesión
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
@@ -141,7 +142,6 @@ app.get('/logout', (req, res) => {
         res.redirect('/');
     });
 });
-
 
 // Ruta para la página de cuenta del usuario (my-account.ejs)
 app.get('/my-account', (req, res) => {
@@ -191,6 +191,7 @@ app.get('/contact-us', (req, res) => {
 app.get('/gallery', (req, res) => {
     res.render('gallery', { user: req.session.user || null });
 });
+
 // Servidor en el puerto 3000
 app.listen(3000, () => {
     console.log('Servidor corriendo en http://localhost:3000');
