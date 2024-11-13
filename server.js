@@ -69,6 +69,58 @@ app.post('/contact', (req, res) => {
     });
 });
 
+//---------------------------------------------------------------------------------------------------------------------------------
+// Middleware para inicializar el carrito en la sesión
+app.use((req, res, next) => {
+    if (!req.session.cart) {
+        req.session.cart = [];
+    }
+    next();
+});
+
+  // Ruta para añadir al carrito
+// Ruta para añadir al carrito
+app.post('/add-to-cart', (req, res) => {
+    const { id, name, price } = req.body;
+  
+    // Crear el objeto del producto
+    const product = {
+      id,
+      name,
+      price
+    };
+  
+    // Añadir el producto al carrito en la sesión
+    req.session.cart = req.session.cart || [];
+    req.session.cart.push(product);
+  
+    res.json({ success: true });
+});
+
+  // Ruta para mostrar el carrito
+app.get('/my-cart', (req, res) => {
+    res.render('my-cart', { cart: req.session.cart });
+  });
+  
+// Ruta para eliminar un producto del carrito
+app.post('/remove-from-cart', (req, res) => {
+    const { id } = req.body;
+
+    // Filtra los productos para eliminar el que tiene el ID dado
+    req.session.cart = req.session.cart.filter(item => item.id != id);
+
+    res.redirect('/cart');
+});
+app.post('/clear-cart', (req, res) => {
+    req.session.cart = []; // Vaciamos el carrito en la sesión
+    res.json({ success: true });
+});
+
+
+
+
+//---------------------------------------------------------------------------------------------------------------------------------
+
 // Ruta para mostrar el formulario de registro
 app.get('/register', (req, res) => {
     res.render('register');
@@ -102,6 +154,7 @@ app.post('/register', async (req, res) => {
         }
     });
 });
+
 
 
 // Ruta para mostrar el formulario de inicio de sesión
@@ -159,8 +212,20 @@ app.get('/shop-detail', (req, res) => {
 
 // Ruta para la tienda (shop.ejs)
 app.get('/shop', (req, res) => {
-    res.render('shop', { user: req.session.user || null });
+    // Ejemplo de productos (esto debería ser obtenido de tu base de datos en un caso real)
+    const products = [
+        { id: 1, name: "Producto 1", price: 9.99, image: "images/img-pro-01.jpg" },
+        { id: 2, name: "Producto 2", price: 14.99, image: "images/img-pro-02.jpg" },
+        { id: 3, name: "Producto 3", price: 7.99, image: "images/img-pro-03.jpg" }
+    ];
+
+    const cart = req.session.cart || []; // Para manejar el carrito
+
+    res.render('shop', { products, cart }); // Pasamos products y cart a la vista
 });
+
+
+
 
 // Ruta para la lista de deseos (wishlist.ejs)
 app.get('/wishlist', (req, res) => {
@@ -174,8 +239,9 @@ app.get('/about', (req, res) => {
 
 // Ruta para la página de carrito (cart.ejs)
 app.get('/cart', (req, res) => {
-    res.render('cart', { user: req.session.user || null });
+    res.render('cart', { cart: req.session.cart || [], user: req.session.user || null });
 });
+
 
 // Ruta para la página de finalizar compra (checkout.ejs)
 app.get('/checkout', (req, res) => {

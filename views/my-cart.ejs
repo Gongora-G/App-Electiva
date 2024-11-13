@@ -1,0 +1,27 @@
+<!-- my-cart.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Cart</title>
+</head>
+<body>
+  <h1>Carrito de Compras</h1>
+  <ul>
+    <% if (cart && cart.length > 0) { %>
+      <% cart.forEach(item => { %>
+        <li>
+          <strong><%= item.name %></strong> - $<%= item.price %>
+          <form action="/remove-from-cart" method="POST" style="display: inline;">
+            <input type="hidden" name="id" value="<%= item.id %>">
+            <button type="submit">Eliminar</button>
+          </form>
+        </li>
+      <% }); %>
+    <% } else { %>
+      <p>El carrito está vacío.</p>
+    <% } %>
+  </ul>
+  <a href="/shop">Seguir comprando</a>
+</body>
+</html>

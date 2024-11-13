@@ -37,6 +37,7 @@
      font-size: 15px;
      font-family: 'Dosis', sans-serif;
      line-height: 1.80857;
+     overflow-y: auto;
 }
  a {
      color: #1f1f1f;
@@ -1751,6 +1752,7 @@
 }
  .shop-box-inner{
      padding: 70px 0px;
+     overflow: visible;
 }
  .search-product {
      position: relative;
