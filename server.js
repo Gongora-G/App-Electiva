@@ -28,16 +28,13 @@ app.use(session({
     saveUninitialized: true,
 }));
 
-// Conexión a la base de datos MySQL usando la URL de conexión de Railway
-const db = mysql.createConnection(process.env.DATABASE_URL);
-
-db.connect((err) => {
-    if (err) {
-        console.log('Error al conectar con la base de datos:', err);
-        return;
-    }
-    console.log('Conexión a la base de datos exitosa.');
-});
+// Conexión a la base de datos MySQL usando un pool de conexiones
+const pool = mysql.createPool({
+    uri: process.env.DATABASE_URL, // URL de la base de datos en Railway
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+}).promise(); // Usamos promise para soportar async/await
 
 // Middleware para definir `user` en todas las vistas
 app.use((req, res, next) => {
@@ -50,134 +47,51 @@ app.get('/', (req, res) => {
     res.render('index', { user: req.session.user || null });
 });
 
-// Ruta para mostrar la página de contacto
-app.get('/contact-us', (req, res) => {
-    res.render('contact-us', { user: req.session.user || null });
-});
-
 // Ruta para manejar el formulario de contacto
-app.post('/contact', (req, res) => {
+app.post('/contact', async (req, res) => {
     const { name, email, subject, message } = req.body;
     const query = 'INSERT INTO contact_form (name, email, subject, message) VALUES (?, ?, ?, ?)';
-    db.query(query, [name, email, subject, message], (err, result) => {
-        if (err) {
-            console.log('Error al insertar los datos:', err);
-            res.status(500).send('Error al guardar el mensaje.');
-        } else {
-            res.send('Mensaje enviado correctamente.');
-        }
-    });
-});
 
-//---------------------------------------------------------------------------------------------------------------------------------
-// Middleware para inicializar el carrito en la sesión
-app.use((req, res, next) => {
-    if (!req.session.cart) {
-        req.session.cart = [];
+    try {
+        await pool.query(query, [name, email, subject, message]);
+        res.send('Mensaje enviado correctamente.');
+    } catch (err) {
+        console.error('Error al insertar los datos:', err);
+        res.status(500).send('Error al guardar el mensaje.');
     }
-    next();
 });
 
-  // Ruta para añadir al carrito
-// Ruta para añadir al carrito
-// Ruta para añadir al carrito
-app.post('/add-to-cart', (req, res) => {
-    const { id, name, price } = req.body;
-
-    // Crear el objeto del producto
-    const product = {
-        id,
-        name,
-        price
-    };
-
-    // Añadir el producto al carrito en la sesión
-    if (!req.session.cart) {
-        req.session.cart = [];
-    }
-    req.session.cart.push(product);
-
-    res.redirect('/cart');  // Redirige al carrito después de agregar el producto
-});
-
-
-  // Ruta para mostrar el carrito
-app.get('/my-cart', (req, res) => {
-    res.render('my-cart', { cart: req.session.cart });
-  });
-  
-// Ruta para eliminar un producto del carrito
-app.post('/remove-from-cart', (req, res) => {
-    const { id } = req.body;
-
-    // Filtra los productos para eliminar el que tiene el ID dado
-    req.session.cart = req.session.cart.filter(item => item.id != id);
-
-    res.redirect('/cart');
-});
-app.post('/clear-cart', (req, res) => {
-    req.session.cart = []; // Vaciamos el carrito en la sesión
-    res.json({ success: true });
-});
-
-
-
-
-//---------------------------------------------------------------------------------------------------------------------------------
-
-// Ruta para mostrar el formulario de registro
-app.get('/register', (req, res) => {
-    res.render('register');
-});
-
-// Ruta para manejar la solicitud de registro
+// Ruta para manejar registro de usuarios
 app.post('/register', async (req, res) => {
     const { nombre, email, password } = req.body;
 
-    // Verifica si el correo ya existe
-    db.query('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-        if (err) {
-            console.error('Error en la consulta:', err);
-            return res.render('register', { errorMessage: 'Hubo un error al verificar el correo electrónico.' });
-        }
-
+    try {
+        const [results] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         if (results.length > 0) {
-            res.render('register', { errorMessage: 'El correo electrónico ya está registrado.' });
-        } else {
-            // Continúa con el registro si no existe
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const query = 'INSERT INTO users (nombre, email, password) VALUES (?, ?, ?)';
-            db.query(query, [nombre, email, hashedPassword], (err, result) => {
-                if (err) {
-                    console.error('Error al insertar datos:', err);
-                    res.render('register', { errorMessage: 'Hubo un error al registrar el usuario.' });
-                } else {
-                    res.redirect('/login');
-                }
-            });
+            return res.render('register', { errorMessage: 'El correo electrónico ya está registrado.' });
         }
-    });
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const query = 'INSERT INTO users (nombre, email, password) VALUES (?, ?, ?)';
+        await pool.query(query, [nombre, email, hashedPassword]);
+
+        res.redirect('/login');
+    } catch (err) {
+        console.error('Error al registrar el usuario:', err);
+        res.render('register', { errorMessage: 'Hubo un error al registrar el usuario.' });
+    }
 });
 
-
-
-// Ruta para mostrar el formulario de inicio de sesión
-app.get('/login', (req, res) => {
-    res.render('login', { errorMessage: null });
-});
-
-// Ruta para el inicio de sesión de usuarios
-app.post('/login', (req, res) => {
+// Ruta para inicio de sesión
+app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    const query = 'SELECT * FROM users WHERE email = ?';
-    db.query(query, [email], async (err, results) => {
-        if (err) {
-            console.log('Error al buscar el usuario:', err);
-            return res.render('login', { errorMessage: 'Error en el servidor. Por favor, inténtalo más tarde.' });
-        }
+
+    try {
+        const [results] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
         if (results.length > 0) {
             const user = results[0];
             const match = await bcrypt.compare(password, user.password);
+
             if (match) {
                 req.session.user = { id: user.id, nombre: user.nombre, email: user.email };
                 return res.redirect('/');
@@ -187,7 +101,10 @@ app.post('/login', (req, res) => {
         } else {
             return res.render('login', { errorMessage: 'Usuario no encontrado.' });
         }
-    });
+    } catch (err) {
+        console.error('Error al buscar el usuario:', err);
+        res.render('login', { errorMessage: 'Error en el servidor. Por favor, inténtalo más tarde.' });
+    }
 });
 
 // Ruta para cerrar sesión
@@ -200,66 +117,59 @@ app.get('/logout', (req, res) => {
     });
 });
 
-// Ruta para la página de cuenta del usuario (my-account.ejs)
-app.get('/my-account', (req, res) => {
-    if (req.session.user) {
-        res.render('my-account', { user: req.session.user });
-    } else {
-        res.redirect('/login');
-    }
-});
-
-// Ruta para la página de detalles de la tienda (shop-detail.ejs)
-app.get('/shop-detail', (req, res) => {
-    res.render('shop-detail', { user: req.session.user || null });
-});
-
-// Ruta para la tienda (shop.ejs)
-app.get('/shop', (req, res) => {
-    // Ejemplo de productos (esto debería ser obtenido de tu base de datos en un caso real)
-    const products = [
-        { id: 1, name: "Producto 1", price: 9.99, image: "images/img-pro-01.jpg" },
-        { id: 2, name: "Producto 2", price: 14.99, image: "images/img-pro-02.jpg" },
-        { id: 3, name: "Producto 3", price: 7.99, image: "images/img-pro-03.jpg" }
-    ];
-
-    const cart = req.session.cart || []; // Para manejar el carrito
-
-    res.render('shop', { products, cart }); // Pasamos products y cart a la vista
-});
-
-
-
-
-// Ruta para la lista de deseos (wishlist.ejs)
-app.get('/wishlist', (req, res) => {
-    res.render('wishlist', { user: req.session.user || null });
-});
-
-// Ruta para la página "Sobre Nosotros" (about.ejs)
-app.get('/about', (req, res) => {
-    res.render('about', { user: req.session.user || null });
-});
-
-// Ruta para la página de carrito (cart.ejs)
+// Ruta para mostrar el carrito
 app.get('/cart', (req, res) => {
     res.render('cart', { cart: req.session.cart || [], user: req.session.user || null });
 });
 
+// Ruta para añadir productos al carrito
+app.post('/add-to-cart', (req, res) => {
+    const { id, name, price } = req.body;
 
-// Ruta para la página de finalizar compra (checkout.ejs)
-app.get('/checkout', (req, res) => {
-    res.render('checkout', { user: req.session.user || null });
+    const product = { id, name, price };
+
+    if (!req.session.cart) {
+        req.session.cart = [];
+    }
+    req.session.cart.push(product);
+
+    res.redirect('/cart');
 });
 
-// Ruta para la página de contacto (contact-us.ejs)
-app.get('/contact-us', (req, res) => {
-    res.render('contact-us', { user: req.session.user || null });
+// Ruta para vaciar el carrito
+app.post('/clear-cart', (req, res) => {
+    req.session.cart = [];
+    res.json({ success: true });
 });
 
-// Ruta para la galería (gallery.ejs)
+// Ruta para registrar productos en la tienda
+app.get('/shop', (req, res) => {
+    const products = [
+        { id: 1, name: "Producto 1", price: 9.99, image: "images/img-pro-01.jpg" },
+        { id: 2, name: "Producto 2", price: 14.99, image: "images/img-pro-02.jpg" },
+        { id: 3, name: "Producto 3", price: 7.99, image: "images/img-pro-03.jpg" },
+    ];
+    res.render('shop', { products, cart: req.session.cart || [] });
+});
+
+// Ruta para la página de detalles de producto
+app.get('/shop-detail', (req, res) => {
+    res.render('shop-detail', { user: req.session.user || null });
+});
+
+// Ruta para la página de "Sobre Nosotros"
+app.get('/about', (req, res) => {
+    res.render('about', { user: req.session.user || null });
+});
+
+// Ruta para la galería
 app.get('/gallery', (req, res) => {
     res.render('gallery', { user: req.session.user || null });
+});
+
+// Ruta para la página de contacto
+app.get('/contact-us', (req, res) => {
+    res.render('contact-us', { user: req.session.user || null });
 });
 
 // Servidor en el puerto 3000
