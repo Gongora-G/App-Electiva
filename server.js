@@ -30,15 +30,23 @@ app.use(session({
 
 // Conexión a la base de datos MySQL usando un pool de conexiones
 const pool = mysql.createPool({
-    uri: process.env.DATABASE_URL, // URL de la base de datos en Railway
+    uri: process.env.DATABASE_URL, // Usar DATABASE_URL definida en el archivo .env
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-}).promise(); // Usamos promise para soportar async/await
+}).promise(); // Usamos .promise() para soporte de async/await
 
 // Middleware para definir `user` en todas las vistas
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
+    next();
+});
+
+// Middleware para inicializar el carrito en la sesión
+app.use((req, res, next) => {
+    if (!req.session.cart) {
+        req.session.cart = [];
+    }
     next();
 });
 
@@ -47,11 +55,15 @@ app.get('/', (req, res) => {
     res.render('index', { user: req.session.user || null });
 });
 
+// Ruta para mostrar la página de contacto
+app.get('/contact-us', (req, res) => {
+    res.render('contact-us', { user: req.session.user || null });
+});
+
 // Ruta para manejar el formulario de contacto
 app.post('/contact', async (req, res) => {
     const { name, email, subject, message } = req.body;
     const query = 'INSERT INTO contact_form (name, email, subject, message) VALUES (?, ?, ?, ?)';
-
     try {
         await pool.query(query, [name, email, subject, message]);
         res.send('Mensaje enviado correctamente.');
@@ -61,7 +73,37 @@ app.post('/contact', async (req, res) => {
     }
 });
 
-// Ruta para manejar registro de usuarios
+// Ruta para mostrar el carrito
+app.get('/my-cart', (req, res) => {
+    res.render('my-cart', { cart: req.session.cart });
+});
+
+// Ruta para añadir productos al carrito
+app.post('/add-to-cart', (req, res) => {
+    const { id, name, price } = req.body;
+    const product = { id, name, price };
+    req.session.cart.push(product);
+    res.redirect('/cart');
+});
+
+// Ruta para eliminar un producto del carrito
+app.post('/remove-from-cart', (req, res) => {
+    const { id } = req.body;
+    req.session.cart = req.session.cart.filter(item => item.id != id);
+    res.redirect('/cart');
+});
+
+// Ruta para vaciar el carrito
+app.post('/clear-cart', (req, res) => {
+    req.session.cart = [];
+    res.json({ success: true });
+});
+
+// Ruta para manejar el registro de usuarios
+app.get('/register', (req, res) => {
+    res.render('register');
+});
+
 app.post('/register', async (req, res) => {
     const { nombre, email, password } = req.body;
 
@@ -72,9 +114,7 @@ app.post('/register', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const query = 'INSERT INTO users (nombre, email, password) VALUES (?, ?, ?)';
-        await pool.query(query, [nombre, email, hashedPassword]);
-
+        await pool.query('INSERT INTO users (nombre, email, password) VALUES (?, ?, ?)', [nombre, email, hashedPassword]);
         res.redirect('/login');
     } catch (err) {
         console.error('Error al registrar el usuario:', err);
@@ -82,7 +122,11 @@ app.post('/register', async (req, res) => {
     }
 });
 
-// Ruta para inicio de sesión
+// Ruta para manejar el inicio de sesión de usuarios
+app.get('/login', (req, res) => {
+    res.render('login', { errorMessage: null });
+});
+
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
@@ -109,40 +153,15 @@ app.post('/login', async (req, res) => {
 
 // Ruta para cerrar sesión
 app.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
+    req.session.destroy(err => {
         if (err) {
-            return res.status(500).send('Error al cerrar sesión');
+            return res.status(500).send('Error al cerrar sesión.');
         }
         res.redirect('/');
     });
 });
 
-// Ruta para mostrar el carrito
-app.get('/cart', (req, res) => {
-    res.render('cart', { cart: req.session.cart || [], user: req.session.user || null });
-});
-
-// Ruta para añadir productos al carrito
-app.post('/add-to-cart', (req, res) => {
-    const { id, name, price } = req.body;
-
-    const product = { id, name, price };
-
-    if (!req.session.cart) {
-        req.session.cart = [];
-    }
-    req.session.cart.push(product);
-
-    res.redirect('/cart');
-});
-
-// Ruta para vaciar el carrito
-app.post('/clear-cart', (req, res) => {
-    req.session.cart = [];
-    res.json({ success: true });
-});
-
-// Ruta para registrar productos en la tienda
+// Ruta para la tienda (shop.ejs)
 app.get('/shop', (req, res) => {
     const products = [
         { id: 1, name: "Producto 1", price: 9.99, image: "images/img-pro-01.jpg" },
@@ -152,24 +171,19 @@ app.get('/shop', (req, res) => {
     res.render('shop', { products, cart: req.session.cart || [] });
 });
 
-// Ruta para la página de detalles de producto
-app.get('/shop-detail', (req, res) => {
-    res.render('shop-detail', { user: req.session.user || null });
-});
-
 // Ruta para la página de "Sobre Nosotros"
 app.get('/about', (req, res) => {
     res.render('about', { user: req.session.user || null });
 });
 
+// Ruta para la página de carrito (cart.ejs)
+app.get('/cart', (req, res) => {
+    res.render('cart', { cart: req.session.cart || [], user: req.session.user || null });
+});
+
 // Ruta para la galería
 app.get('/gallery', (req, res) => {
     res.render('gallery', { user: req.session.user || null });
-});
-
-// Ruta para la página de contacto
-app.get('/contact-us', (req, res) => {
-    res.render('contact-us', { user: req.session.user || null });
 });
 
 // Servidor en el puerto 3000
